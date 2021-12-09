@@ -54,6 +54,7 @@
       - Templates
       - Videos
 
+  # TODO: separate programs with external inputs ala qubes
   - name: install development tools
     apt:
       name: "{{ packages }}"
