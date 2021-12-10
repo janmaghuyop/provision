@@ -146,4 +146,16 @@
     with_items:
       - dotfiles
       - bin
+    ignore_errors: yes
 
+  - name: set dotfiles
+    shell: |
+      cd /home/{{ ansible_user }}
+      cd dotfiles
+      ./link.sh
+      git remote rm origin
+      git remote add origin git@github.com:janmaghuyop/dotfiles.git
+      cd ..
+      cd bin
+      git remote rm origin
+      git remote add origin git@github.com:janmaghuyop/bin.git
