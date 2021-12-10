@@ -1,5 +1,5 @@
 # provision
 
 ```bash
-ansible-playbook playbook.yml
+. provision.sh
 ```

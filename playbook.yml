@@ -137,3 +137,13 @@
       - { path: '/boot/efi/loader/entries/Pop_OS-current.conf', regexp1: 'quiet', replace: ''}
       - { path: '/boot/efi/loader/entries/Pop_OS-current.conf', regexp1: 'splash', replace: 'intel_pstate=disable ipv6.disable=1'}
     become: yes
+
+  - name: clone dotfiles
+    git:
+      repo: "https://github.com/janmaghuyop/{{ item }}.git"
+      dest: "/home/{{ ansible_user }}/{{ item }}"
+      clone: yes
+    with_items:
+      - dotfiles
+      - bin
+
