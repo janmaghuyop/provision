@@ -7,6 +7,7 @@ if [ ! -d "$INSTALL_DIR" ]; then
     bash Miniconda3-latest-Linux-x86_64.sh -b -f -p $INSTALL_DIR
     conda update conda
     conda install -c conda-forge ansible
+    rm Miniconda3-latest-Linux-x86_64.sh
 fi
 
 cd $WD

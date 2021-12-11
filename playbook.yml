@@ -15,10 +15,6 @@
     prompt: ansible_sudo_pass
 
   tasks:
-  - name: set hostname
-    command: echo "{{ hostname }}" > /etc/hostname
-    become: yes
-
   - name: remove packages
     apt:
       name: "{{ packages }}"
@@ -68,24 +64,25 @@
       - htop
       - ncdu
       - aria2
-      - pass
-      - mpv
-      - zathura
-      - pinentry-tty
       - curl
-      - openvpn
-      - sxiv
-      - pv
-      - jq
-      - maim
-      - oathtool
-      - xdotool
-      - pigz
+      - lm-sensors
     become: yes
+#      - pass
+#      - mpv
+#      - zathura
+#      - pinentry-tty
+#      - openvpn
+#      - sxiv
+#      - pv
+#      - jq
+#      - maim
+#      - oathtool
+#      - xdotool
+#      - pigz
 
-  - name: set pinentry /usr/bin/pinentry-tty
-    command: update-alternatives --set pinentry /usr/bin/pinentry-tty
-    become: yes
+#  - name: set pinentry /usr/bin/pinentry-tty
+#    command: update-alternatives --set pinentry /usr/bin/pinentry-tty
+#    become: yes
 
   # TODO
   - name: install stubby
@@ -112,21 +109,64 @@
     become: yes
 
   # TODO: popos specific
-  - name: do not start appcenter
+  - name: set host in hostnamectl
+    command: hostnamectl set-hostname "{{ hostname }}"
+    become: yes
+
+  - name: replace hostname in hosts file
+    replace:
+      path: /etc/hosts
+      regexp: "pop-os"
+      replace: "{{ hostname }}"
+    become: yes
+
+  - name: disable autostart
     shell: |
       cd /etc/xdg/autostart
       mv io.elementary.appcenter-daemon.desktop io.elementary.appcenter-daemon.desktop.bak
+      # defaults
+      mv org.pop_os.transition.Notify.desktop org.pop_os.transition.Notify.desktop.bak
+      mv nvidia-settings-autostart.desktop nvidia-settings-autostart.desktop.bak
+      mv im-launch.desktop im-launch.desktop.bak
+      mv com.system76.PopUpgrade.Notify.desktop.bak
+      mv com.system76.FirmwareManager.Notify.desktop com.system76.FirmwareManager.Notify.desktop.bak
+      # hidden
+      mv geoclue-demo-agent.desktop geoclue-demo-agent.desktop.bak
+      mv print-applet.desktop print-applet.desktop.bak
     ignore_errors: yes
     become: yes
 
-  - name: disable background
+  - name: install gnome extensions
+    apt:
+      name: "{{ packages }}"
+    vars:
+      packages:
+      - gnome-shell-extension-autohidetopbar
+    become: yes
+
+  - name: configure theme
     shell: |
       gsettings set org.gnome.desktop.interface enable-animations false
-
-  - name: set solid wallpaper
-    shell: |
+      # set sold wallpaper
       gsettings set org.gnome.desktop.background picture-options 'none'
       gsettings set org.gnome.desktop.background primary-color '#000000'
+      # disable lock
+      gsettings set org.gnome.desktop.screensaver lock-enabled false
+      # hide top bar
+      # dconf watch /
+      gnome-extensions enable hidetopbar@mathieu.bidon.ca
+      gsettings set org.gnome.shell.extensions.hidetopbar enable-intellihide false
+      gsettings set org.gnome.shell.extensions.hidetopbar enable-active-window false
+      # hide workspace
+      gnome-extensions disable always-show-workspaces@system76.com
+      # do not raise first window
+      gnome-extensions disable alt-tab-raise-first-window@system76.com
+      # disable desktop icons
+      gnome-extensions disable ding@rastersoft.com
+      # remove favorites
+      gsettings set org.gnome.shell favorite-apps []
+      # enable hint
+      gsettings set org.gnome.shell.extensions.pop-shell active-hint true
 
   - name: remove splash in boot and disable ipv6 and intel_pstate
     replace:
@@ -136,6 +176,24 @@
     with_items:
       - { path: '/boot/efi/loader/entries/Pop_OS-current.conf', regexp1: 'quiet', replace: ''}
       - { path: '/boot/efi/loader/entries/Pop_OS-current.conf', regexp1: 'splash', replace: 'intel_pstate=disable ipv6.disable=1'}
+    become: yes
+
+  - name: enable autologin
+    lineinfile:
+      dest: /etc/gdm3/custom.conf
+      regex: '^#\s*{{ item.regex }}(.*)$'
+      line: '{{ item.line }}'
+    loop:
+      - regex: 'AutomaticLoginEnable'
+        line: 'AutomaticLoginEnable = true'
+      - regex: 'AutomaticLogin'
+        line: "AutomaticLogin = {{ ansible_user }}"
+    become: yes
+
+  - name: disable connectivity checking
+    shell: |
+      sudo apt-get install -y crudini
+      sudo crudini --set /var/lib/NetworkManager/NetworkManager-intern.conf "connectivity" ".set.enabled" "false"
     become: yes
 
   - name: clone dotfiles
@@ -159,3 +217,8 @@
       cd bin
       git remote rm origin
       git remote add origin git@github.com:janmaghuyop/bin.git
+
+  - name: set git author
+    shell: |
+      git config user.name janmaghuyop
+      git config user.email janmaghuyop@pm.me
