@@ -66,6 +66,7 @@
       - aria2
       - curl
       - lm-sensors
+      - xdotool
     become: yes
 #      - pass
 #      - mpv
@@ -77,7 +78,6 @@
 #      - jq
 #      - maim
 #      - oathtool
-#      - xdotool
 #      - pigz
 
 #  - name: set pinentry /usr/bin/pinentry-tty
@@ -167,6 +167,8 @@
       gsettings set org.gnome.shell favorite-apps []
       # enable hint
       gsettings set org.gnome.shell.extensions.pop-shell active-hint true
+      # disable recent files
+      gsettings set org.gnome.desktop.privacy remember-recent-files false
 
   - name: remove shadow in dark and light theme
     shell: |
@@ -194,6 +196,8 @@
     shell: |
       cd /home/{{ ansible_user }}/.config/gtk-3.0
       mv bookmarks bookmarks.bak
+      touch bookmarks
+    ignore_errors: yes
 
   - name: remove splash in boot and disable ipv6 and intel_pstate
     replace:
@@ -249,3 +253,17 @@
     shell: |
       git config --global user.email "janmaghuyop@pm.me"
       git config --global user.name "janmaghuyop"
+
+  - name: install snapd
+    apt:
+      name: "{{ packages }}"
+    vars:
+      packages:
+      - snapd
+    become: yes
+
+  - name: install lxd using snap
+    snap:
+      name:
+      - lxd
+    become: yes
