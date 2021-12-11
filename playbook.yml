@@ -168,6 +168,33 @@
       # enable hint
       gsettings set org.gnome.shell.extensions.pop-shell active-hint true
 
+  - name: remove shadow in dark and light theme
+    shell: |
+      sed -i "s/.*shadow.*//" /usr/share/gnome-shell/extensions/pop-shell@system76.com/dark.css
+      sed -i "s/.*shadow.*//" /usr/share/gnome-shell/extensions/pop-shell@system76.com/light.css
+    become: yes
+
+  - name: disable shadow in window decoration
+    lineinfile:
+      dest: "/usr/share/gnome-shell/extensions/pop-shell@system76.com/{{ item }}.css"
+      line: 'decoration {box-shadow: none;}'
+    with_items:
+      - dark
+      - light
+    become: yes
+
+  - name: remove default user-dirs
+    replace:
+      path: /home/{{ ansible_user }}/.config/user-dirs.dirs
+      regexp: '(.*XDG.*)'
+      replace: '#\1'
+    become: yes
+
+  - name: remove default nautilus
+    shell: |
+      cd /home/{{ ansible_user }}/.config/gtk-3.0
+      mv bookmarks bookmarks.bak
+
   - name: remove splash in boot and disable ipv6 and intel_pstate
     replace:
       path: "{{ item.path }}"
@@ -192,8 +219,8 @@
 
   - name: disable connectivity checking
     shell: |
-      sudo apt-get install -y crudini
-      sudo crudini --set /var/lib/NetworkManager/NetworkManager-intern.conf "connectivity" ".set.enabled" "false"
+      apt-get install -y crudini
+      crudini --set /var/lib/NetworkManager/NetworkManager-intern.conf "connectivity" ".set.enabled" "false"
     become: yes
 
   - name: clone dotfiles
