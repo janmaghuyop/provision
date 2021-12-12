@@ -226,6 +226,18 @@
       crudini --set /var/lib/NetworkManager/NetworkManager-intern.conf "connectivity" ".set.enabled" "false"
     become: yes
 
+  # https://support.system76.com/articles/battery/
+  # https://linrunner.de/tlp/
+  - name: install tlp to prolong battery life
+    apt:
+      name: "{{ packages }}"
+      install_recommends: no
+    vars:
+      packages:
+      - tlp
+      - tlp-rdw
+    become: yes
+
   - name: clone dotfiles
     git:
       repo: "https://github.com/janmaghuyop/{{ item }}.git"
@@ -255,16 +267,12 @@
 
   - name: install snapd
     apt:
-      name: "{{ packages }}"
-    vars:
-      packages:
-      - snapd
+      name: snapd
     become: yes
 
   - name: install lxd using snap
     snap:
-      name:
-      - lxd
+      name: lxd
     become: yes
 
   - name: add user to lxd group
