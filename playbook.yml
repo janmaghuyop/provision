@@ -185,19 +185,18 @@
       - light
     become: yes
 
-  - name: remove default user-dirs
+  - name: remove local default user dirs
     replace:
       path: /home/{{ ansible_user }}/.config/user-dirs.dirs
-      regexp: '(.*XDG.*)'
+      regexp: '(^XDG.*$)'
+      replace: '#\1'
+
+  - name: remove global default user dirs
+    replace:
+      path: /etc/xdg/user-dirs.defaults
+      regexp: '(^[DTVPM].*$)'
       replace: '#\1'
     become: yes
-
-  - name: remove default nautilus
-    shell: |
-      cd /home/{{ ansible_user }}/.config/gtk-3.0
-      mv bookmarks bookmarks.bak
-      touch bookmarks
-    ignore_errors: yes
 
   - name: remove splash in boot and disable ipv6 and intel_pstate
     replace:
@@ -267,3 +266,13 @@
       name:
       - lxd
     become: yes
+
+  - name: add user to lxd group
+    ansible.builtin.user:
+      name: "{{ ansible_user }}"
+      groups: lxd
+      append: yes
+    become: yes
+
+# TODO
+# sudo lxd init
