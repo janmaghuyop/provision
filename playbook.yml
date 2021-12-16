@@ -50,7 +50,6 @@
       - Templates
       - Videos
 
-  # TODO: separate programs with external inputs ala qubes
   - name: install development tools
     apt:
       name: "{{ packages }}"
@@ -67,22 +66,22 @@
       - curl
       - lm-sensors
       - xdotool
+      - pass
+      - zathura
+      - pinentry-tty
+      - oathtool
+      - sxiv
+      - pv
+      - jq
     become: yes
-#      - pass
 #      - mpv
-#      - zathura
-#      - pinentry-tty
 #      - openvpn
-#      - sxiv
-#      - pv
-#      - jq
 #      - maim
-#      - oathtool
 #      - pigz
 
-#  - name: set pinentry /usr/bin/pinentry-tty
-#    command: update-alternatives --set pinentry /usr/bin/pinentry-tty
-#    become: yes
+  - name: set pinentry /usr/bin/pinentry-tty
+    command: update-alternatives --set pinentry /usr/bin/pinentry-tty
+    become: yes
 
   # TODO
   - name: install stubby
@@ -265,22 +264,22 @@
       git config --global user.email "janmaghuyop@pm.me"
       git config --global user.name "janmaghuyop"
 
-  - name: install snapd
-    apt:
-      name: snapd
-    become: yes
-
-  - name: install lxd using snap
-    snap:
-      name: lxd
-    become: yes
-
-  - name: add user to lxd group
-    ansible.builtin.user:
-      name: "{{ ansible_user }}"
-      groups: lxd
-      append: yes
-    become: yes
-
-# TODO
-# sudo lxd init
+#  - name: install snapd
+#    apt:
+#      name: snapd
+#    become: yes
+#
+#  - name: install lxd using snap
+#    snap:
+#      name: lxd
+#    become: yes
+#
+#  - name: add user to lxd group
+#    ansible.builtin.user:
+#      name: "{{ ansible_user }}"
+#      groups: lxd
+#      append: yes
+#    become: yes
+#
+## TODO
+## sudo lxd init
