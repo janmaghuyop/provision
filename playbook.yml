@@ -73,10 +73,10 @@
       - sxiv
       - pv
       - jq
+      - mpv
+      - openvpn
+      - maim
     become: yes
-#      - mpv
-#      - openvpn
-#      - maim
 #      - pigz
 
   - name: set pinentry /usr/bin/pinentry-tty
