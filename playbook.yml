@@ -125,7 +125,7 @@
       mv io.elementary.appcenter-daemon.desktop io.elementary.appcenter-daemon.desktop.bak
       # defaults
       mv org.pop_os.transition.Notify.desktop org.pop_os.transition.Notify.desktop.bak
-      mv nvidia-settings-autostart.desktop nvidia-settings-autostart.desktop.bak
+      # mv nvidia-settings-autostart.desktop nvidia-settings-autostart.desktop.bak
       mv im-launch.desktop im-launch.desktop.bak
       mv com.system76.PopUpgrade.Notify.desktop.bak
       mv com.system76.FirmwareManager.Notify.desktop com.system76.FirmwareManager.Notify.desktop.bak
@@ -184,18 +184,18 @@
       - light
     become: yes
 
-  - name: remove local default user dirs
-    replace:
-      path: /home/{{ ansible_user }}/.config/user-dirs.dirs
-      regexp: '(^XDG.*$)'
-      replace: '#\1'
-
-  - name: remove global default user dirs
-    replace:
-      path: /etc/xdg/user-dirs.defaults
-      regexp: '(^[DTVPM].*$)'
-      replace: '#\1'
-    become: yes
+#  - name: remove local default user dirs
+#    replace:
+#      path: /home/{{ ansible_user }}/.config/user-dirs.dirs
+#      regexp: '(^XDG.*$)'
+#      replace: '#\1'
+#
+#  - name: remove global default user dirs
+#    replace:
+#      path: /etc/xdg/user-dirs.defaults
+#      regexp: '(^[DTVPM].*$)'
+#      replace: '#\1'
+#    become: yes
 
   - name: remove splash in boot and disable ipv6 and intel_pstate
     replace:
@@ -245,6 +245,7 @@
     with_items:
       - dotfiles
       - bin
+      - scripts
     ignore_errors: yes
 
   - name: set dotfiles
@@ -258,6 +259,10 @@
       cd bin
       git remote rm origin
       git remote add origin git@github.com:janmaghuyop/bin.git
+      cd ..
+      cd scripts
+      git remote rm origin
+      git remote add origin git@github.com:janmaghuyop/scripts.git
 
   - name: set git author
     shell: |
