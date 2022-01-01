@@ -15,6 +15,9 @@
     prompt: ansible_sudo_pass
 
   tasks:
+
+  # offline
+
   - name: remove packages
     apt:
       name: "{{ packages }}"
@@ -50,6 +53,98 @@
       - Templates
       - Videos
 
+  - name: stop cups service
+    systemd:
+      name: "{{ item }}"
+      state: stopped
+    with_items:
+      - cups
+      - cups-browsed
+    become: yes
+
+  - name: set git author
+    shell: |
+      git config --global user.email "janmaghuyop@pm.me"
+      git config --global user.name "janmaghuyop"
+
+  # popos specific
+
+  - name: configure theme
+    shell: |
+      gsettings set org.gnome.desktop.interface enable-animations false
+
+      # set solid wallpaper
+      gsettings set org.gnome.desktop.background picture-options 'none'
+      gsettings set org.gnome.desktop.background primary-color '#000000'
+
+      # disable lock
+      gsettings set org.gnome.desktop.screensaver lock-enabled false
+
+      # remove favorites
+      gsettings set org.gnome.shell favorite-apps []
+
+      # enable hint
+      gsettings set org.gnome.shell.extensions.pop-shell active-hint true
+
+      # disable recent files
+      gsettings set org.gnome.desktop.privacy remember-recent-files false
+
+      # hide desktop icons
+      gnome-extensions disable ding@rastersoft.com
+
+      # hide workspace
+      gnome-extensions disable always-show-workspaces@system76.com
+
+  - name: remove shadow in dark and light theme
+    shell: |
+      sed -i "s/.*shadow.*//" /usr/share/gnome-shell/extensions/pop-shell@system76.com/dark.css
+      sed -i "s/.*shadow.*//" /usr/share/gnome-shell/extensions/pop-shell@system76.com/light.css
+    become: yes
+
+  - name: disable shadow in window decoration
+    lineinfile:
+      dest: "/usr/share/gnome-shell/extensions/pop-shell@system76.com/{{ item }}.css"
+      line: 'decoration {box-shadow: none;}'
+    with_items:
+      - dark
+      - light
+    become: yes
+
+  - name: remove splash in boot and disable ipv6 and intel_pstate
+    replace:
+      path: "{{ item.path }}"
+      regexp: "{{ item.regexp1 }}"
+      replace: "{{ item.replace }}"
+    with_items:
+      - { path: '/boot/efi/loader/entries/Pop_OS-current.conf', regexp1: 'quiet', replace: ''}
+      - { path: '/boot/efi/loader/entries/Pop_OS-current.conf', regexp1: 'splash', replace: 'intel_pstate=disable ipv6.disable=1'}
+    become: yes
+
+  - name: enable autologin
+    lineinfile:
+      dest: /etc/gdm3/custom.conf
+      regex: '^#\s*{{ item.regex }}(.*)$'
+      line: '{{ item.line }}'
+    loop:
+      - regex: 'AutomaticLoginEnable'
+        line: 'AutomaticLoginEnable = true'
+      - regex: 'AutomaticLogin'
+        line: "AutomaticLogin = {{ ansible_user }}"
+    become: yes
+
+  - name: set host in hostnamectl
+    command: hostnamectl set-hostname "{{ hostname }}"
+    become: yes
+
+  - name: replace hostname in hosts file
+    replace:
+      path: /etc/hosts
+      regexp: "pop-os"
+      replace: "{{ hostname }}"
+    become: yes
+
+  # online
+
   - name: install development tools
     apt:
       name: "{{ packages }}"
@@ -76,63 +171,17 @@
       - mpv
       - openvpn
       - maim
+      - pigz
+      - cmus
     become: yes
-#      - pigz
 
   - name: set pinentry /usr/bin/pinentry-tty
     command: update-alternatives --set pinentry /usr/bin/pinentry-tty
     become: yes
 
-  # TODO
   - name: install stubby
     apt:
       name: stubby
-    become: yes
-
-  - name: stop cups service
-    systemd:
-      name: "{{ item }}"
-      state: stopped
-    with_items:
-      - cups
-      - cups-browsed
-    become: yes
-
-  - name: disable cups service
-    systemd:
-      name: "{{ item }}"
-      enabled: no
-    with_items:
-      - cups
-      - cups-browsed
-    become: yes
-
-  # TODO: popos specific
-  - name: set host in hostnamectl
-    command: hostnamectl set-hostname "{{ hostname }}"
-    become: yes
-
-  - name: replace hostname in hosts file
-    replace:
-      path: /etc/hosts
-      regexp: "pop-os"
-      replace: "{{ hostname }}"
-    become: yes
-
-  - name: disable autostart
-    shell: |
-      cd /etc/xdg/autostart
-      mv io.elementary.appcenter-daemon.desktop io.elementary.appcenter-daemon.desktop.bak
-      # defaults
-      mv org.pop_os.transition.Notify.desktop org.pop_os.transition.Notify.desktop.bak
-      # mv nvidia-settings-autostart.desktop nvidia-settings-autostart.desktop.bak
-      mv im-launch.desktop im-launch.desktop.bak
-      mv com.system76.PopUpgrade.Notify.desktop.bak
-      mv com.system76.FirmwareManager.Notify.desktop com.system76.FirmwareManager.Notify.desktop.bak
-      # hidden
-      mv geoclue-demo-agent.desktop geoclue-demo-agent.desktop.bak
-      mv print-applet.desktop print-applet.desktop.bak
-    ignore_errors: yes
     become: yes
 
   - name: install gnome extensions
@@ -141,82 +190,6 @@
     vars:
       packages:
       - gnome-shell-extension-autohidetopbar
-    become: yes
-
-  - name: configure theme
-    shell: |
-      gsettings set org.gnome.desktop.interface enable-animations false
-      # set sold wallpaper
-      gsettings set org.gnome.desktop.background picture-options 'none'
-      gsettings set org.gnome.desktop.background primary-color '#000000'
-      # disable lock
-      gsettings set org.gnome.desktop.screensaver lock-enabled false
-      # hide top bar
-      # dconf watch /
-      gnome-extensions enable hidetopbar@mathieu.bidon.ca
-      gsettings set org.gnome.shell.extensions.hidetopbar enable-intellihide false
-      gsettings set org.gnome.shell.extensions.hidetopbar enable-active-window false
-      # hide workspace
-      gnome-extensions disable always-show-workspaces@system76.com
-      # do not raise first window
-      gnome-extensions disable alt-tab-raise-first-window@system76.com
-      # disable desktop icons
-      gnome-extensions disable ding@rastersoft.com
-      # remove favorites
-      gsettings set org.gnome.shell favorite-apps []
-      # enable hint
-      gsettings set org.gnome.shell.extensions.pop-shell active-hint true
-      # disable recent files
-      gsettings set org.gnome.desktop.privacy remember-recent-files false
-
-  - name: remove shadow in dark and light theme
-    shell: |
-      sed -i "s/.*shadow.*//" /usr/share/gnome-shell/extensions/pop-shell@system76.com/dark.css
-      sed -i "s/.*shadow.*//" /usr/share/gnome-shell/extensions/pop-shell@system76.com/light.css
-    become: yes
-
-  - name: disable shadow in window decoration
-    lineinfile:
-      dest: "/usr/share/gnome-shell/extensions/pop-shell@system76.com/{{ item }}.css"
-      line: 'decoration {box-shadow: none;}'
-    with_items:
-      - dark
-      - light
-    become: yes
-
-#  - name: remove local default user dirs
-#    replace:
-#      path: /home/{{ ansible_user }}/.config/user-dirs.dirs
-#      regexp: '(^XDG.*$)'
-#      replace: '#\1'
-#
-#  - name: remove global default user dirs
-#    replace:
-#      path: /etc/xdg/user-dirs.defaults
-#      regexp: '(^[DTVPM].*$)'
-#      replace: '#\1'
-#    become: yes
-
-  - name: remove splash in boot and disable ipv6 and intel_pstate
-    replace:
-      path: "{{ item.path }}"
-      regexp: "{{ item.regexp1 }}"
-      replace: "{{ item.replace }}"
-    with_items:
-      - { path: '/boot/efi/loader/entries/Pop_OS-current.conf', regexp1: 'quiet', replace: ''}
-      - { path: '/boot/efi/loader/entries/Pop_OS-current.conf', regexp1: 'splash', replace: 'intel_pstate=disable ipv6.disable=1'}
-    become: yes
-
-  - name: enable autologin
-    lineinfile:
-      dest: /etc/gdm3/custom.conf
-      regex: '^#\s*{{ item.regex }}(.*)$'
-      line: '{{ item.line }}'
-    loop:
-      - regex: 'AutomaticLoginEnable'
-        line: 'AutomaticLoginEnable = true'
-      - regex: 'AutomaticLogin'
-        line: "AutomaticLogin = {{ ansible_user }}"
     become: yes
 
   - name: disable connectivity checking
@@ -236,55 +209,3 @@
       - tlp
       - tlp-rdw
     become: yes
-
-  - name: clone dotfiles
-    git:
-      repo: "https://github.com/janmaghuyop/{{ item }}.git"
-      dest: "/home/{{ ansible_user }}/{{ item }}"
-      clone: yes
-    with_items:
-      - dotfiles
-      - bin
-      - scripts
-    ignore_errors: yes
-
-  - name: set dotfiles
-    shell: |
-      cd /home/{{ ansible_user }}
-      cd dotfiles
-      ./link.sh
-      git remote rm origin
-      git remote add origin git@github.com:janmaghuyop/dotfiles.git
-      cd ..
-      cd bin
-      git remote rm origin
-      git remote add origin git@github.com:janmaghuyop/bin.git
-      cd ..
-      cd scripts
-      git remote rm origin
-      git remote add origin git@github.com:janmaghuyop/scripts.git
-
-  - name: set git author
-    shell: |
-      git config --global user.email "janmaghuyop@pm.me"
-      git config --global user.name "janmaghuyop"
-
-#  - name: install snapd
-#    apt:
-#      name: snapd
-#    become: yes
-#
-#  - name: install lxd using snap
-#    snap:
-#      name: lxd
-#    become: yes
-#
-#  - name: add user to lxd group
-#    ansible.builtin.user:
-#      name: "{{ ansible_user }}"
-#      groups: lxd
-#      append: yes
-#    become: yes
-#
-## TODO
-## sudo lxd init
