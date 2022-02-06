@@ -4,5 +4,5 @@ if [ -f /usr/bin/gnome-terminal ]; then
 fi
 
 if [ -f /usr/bin/xfce4-terminal ]; then
-    cat ~/provision/themes/xfce4_terminal.dark > ~/.config/xfce4/terminal/terminalrc
+    cp ~/provision/themes/xfce4_terminal.dark  ~/.config/xfce4/terminal/terminalrc
 fi
