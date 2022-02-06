@@ -1,0 +1,20 @@
+[legacy]
+theme-variant='system'
+
+[legacy/profiles:/:b1dcc9dd-5262-4d8d-a863-c897e6d979b9]
+audible-bell=false
+background-color='rgb(1,23,28)'
+cursor-background-color='rgb(241,255,82)'
+cursor-colors-set=true
+cursor-foreground-color='rgb(0,0,0)'
+#default-size-columns=262
+#default-size-rows=82
+default-size-columns=116
+default-size-rows=33
+#font='Ubuntu Mono 8'
+foreground-color='rgb(206,213,214)'
+highlight-colors-set=false
+palette=['rgb(1,23,28)', 'rgb(204,0,0)', 'rgb(78,154,6)', 'rgb(196,160,0)', 'rgb(52,101,164)', 'rgb(117,80,123)', 'rgb(6,152,154)', 'rgb(211,215,207)', 'rgb(136,128,124)', 'rgb(241,93,34)', 'rgb(115,196,143)', 'rgb(255,206,81)', 'rgb(72,185,199)', 'rgb(173,127,168)', 'rgb(52,226,226)', 'rgb(238,238,236)']
+scroll-on-output=true
+scrollbar-policy='never'
+use-theme-transparency=false

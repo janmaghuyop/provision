@@ -1,0 +1,189 @@
+# history
+shopt -s histappend
+HISTCONTROL=ignoreboth:erasedups
+HISTSIZE=2000
+HISTFILESIZE=2000
+if [ -d "$HOME/$(hostname)" ]; then
+    HISTFILE=$HOME/$(hostname)/bash_history
+else
+    HISTFILE=~/.bash_history
+fi
+
+
+# stubby warning
+check_stubby () {
+   [ ! -z "$(nmcli radio | awk '{print $2}' | grep disabled)" ] && return 0
+   [ ! -f "/usr/bin/nmcli" ] && return 0
+   [ -z "$(nmcli dev show | grep DNS | grep 127.0.0.1)" ] &&  cat << EOF
+Check DNS if using stubby!
+nmcli con # list connections
+nmcli con mod <CON> ipv4.dns "127.0.0.1"
+nmcli con mod <CON> ipv4.ignore-auto-dns yes # ignore dhcp dns
+# apply
+nmcli con down <CON>
+nmcli con up <CON>
+EOF
+}
+if [ -d "$HOME/$(hostname)" ]; then
+    check_stubby
+fi
+
+
+# battery warning
+check_batt () {
+  BATT=$(cat /sys/class/power_supply/BAT0/capacity)
+  BATT_STAT=$(cat /sys/class/power_supply/BAT0/status)
+
+  [ "$BATT" -ge 80 ] && [ "$BATT_STAT" = "Charging" ]    && echo "BAT0: ${BATT}% Disconnect charger!"
+  [ "$BATT" -le 50 ] && [ "$BATT_STAT" = "Discharging" ] && echo "BAT0: ${BATT}% Connect charger!"
+}
+
+
+# timezone warning
+[ ! -z "$(date | grep UTC)" ] && cat << EOF
+Timezone is UTC!
+sudo timedatectl set-timezone Asia/Manila
+EOF
+
+
+# prompt
+prompt () {
+   printf "%${COLUMNS}s\\r" "$?" # right align
+   check_batt
+   # sync history
+   history -n; history -w; history -c; history -r
+}
+export PROMPT_COMMAND="prompt"
+PROMPT_DIRTRIM=1
+#PS1="\u@\h|\w|\A> "
+#PS1="\w|\A> "
+PS1="$ "
+if [ -d "$HOME/$(hostname)" ]; then
+    PS1="$ "
+else
+    PS1="\u@\h|\w|\A> "
+fi
+
+
+# alias
+alias ls='ls -h'
+alias ll='ls -alht'
+alias l1='ls -C1'
+alias l='ls'
+alias c='clear'
+alias h='history'
+alias ..='cd ..; pwd'
+alias x='exit'
+alias p1='ping 1.1.1.1'
+alias po='poweroff'
+alias re='reboot'
+alias ht='htop'
+# git
+alias   g='git'
+alias  gp='git push'
+alias  ga='git add'
+alias  gb='git branch'
+alias gi='git init'
+alias gf='git fetch'
+alias gst='git status'
+alias gaa='git add --all'
+alias gcm='git commit --message'
+alias gca='git commit --amend'
+alias gfo='git fetch origin'
+alias grh='git reset --hard'
+# docker
+if [ -f "/usr/bin/podman" ]; then
+    alias docker='podman'
+fi
+alias di='docker images'
+alias din='docker inspect'
+alias dps='docker ps'
+alias drmi='docker rmi'
+alias dn='docker network'
+alias dnls='docker network ls'
+alias dnrm='docker network rm'
+alias dnc='docker network create'
+# docker-compose
+podman-compose version &> /dev/null
+if [ $? -eq 0 ]; then
+   alias docker-compose='podman-compose'
+fi
+alias dc='docker-compose'
+alias dcu='docker-compose up'
+alias dcud='docker-compose up -d'
+alias dcd='docker-compose down'
+alias dclf='docker-compose logs -f'
+alias dcps='docker-compose ps'
+alias dcs='docker-compose stop'
+# lxc
+alias lx='lxc'
+alias lxl='lxc ls'
+alias lxls='lxc ls'
+alias lxpl='lxc profile ls'
+alias lxps='lxc profile show'
+alias lxil='lxc image ls'
+# tmux
+alias t='tmux'
+alias tm='tm'
+alias ta='tmux attach'
+# cal
+alias jan='cal -m 01'
+alias feb='cal -m 02'
+alias mar='cal -m 03'
+alias apr='cal -m 04'
+alias may='cal -m 05'
+alias jun='cal -m 06'
+alias jul='cal -m 07'
+alias aug='cal -m 08'
+alias sep='cal -m 09'
+alias oct='cal -m 10'
+alias nov='cal -m 11'
+alias dec='cal -m 12'
+# config
+alias bashrc="vim ~/.bashrc"
+alias  vimrc="vim ~/.vimrc"
+# others
+alias v="vim"
+
+
+# helper
+alias  helper="vim ~/.helper.txt"
+#cat ~/.helper.txt $HISTFILE > ${HISTFILE}.tmp; mv ${HISTFILE}.tmp $HISTFILE
+#sed -i '/^#/d' $HISTFILE # remove comments
+#sed -i '/^$/d' $HISTFILE # remove blank lines
+# remove duplicate
+#awk '!x[$0]++' $HISTFILE > ${HISTFILE}.tmp; mv ${HISTFILE}.tmp $HISTFILE
+
+
+# variable defaults
+export EDITOR=vim # git
+
+
+# scripts
+PATH="$HOME/provision/scripts:$PATH"
+
+# bin
+BIN_DIR=$HOME/provision/bin
+PATH="$BIN_DIR:$PATH"
+source $BIN_DIR/bin.bashrc
+# z dir jumper
+. $BIN_DIR/z
+
+# miniconda
+PATH=$PATH:$HOME/provision/tmp/miniconda3/bin
+
+
+# bash completions
+# git
+#source /usr/share/bash-completion/completions/git
+#source <(cat /usr/share/bash-completion/completions/git | sed 's/git/g/g')
+
+
+# custom bashrc
+CUSTOM_BASHRC=~/$(hostname)/bashrc
+if [ -f "$CUSTOM_BASHRC" ]; then
+    . $CUSTOM_BASHRC
+fi
+if [ -f ~/bashrc ]; then
+    . ~/bashrc
+fi

@@ -95,6 +95,9 @@
       # hide workspace
       gnome-extensions disable always-show-workspaces@system76.com
 
+      # only switch in current workspace
+      gsettings set org.gnome.shell.app-switcher current-workspace-only true
+
   - name: remove shadow in dark and light theme
     shell: |
       sed -i "s/.*shadow.*//" /usr/share/gnome-shell/extensions/pop-shell@system76.com/dark.css
@@ -209,3 +212,4 @@
       - tlp
       - tlp-rdw
     become: yes
+

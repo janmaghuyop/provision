@@ -1,0 +1,69 @@
+# docker
+docker stop $(docker ps -a -q)
+docker ps -aq --no-trunc -f status=exited | xargs docker rm
+docker rmi -f $(docker images -f "dangling=true" -q)
+docker rmi $(docker images | grep <PATTERN> | awk '{print $3}')
+docker volume rm -f $(docker volume ls -f "dangling=true" -q)
+
+# lxd
+lxc exec <CONTAINER> -- sudo --user <USER> --login
+lxc storage ls
+lxc storage info default
+lxc config show <CONTAINER>
+
+
+# system
+sensors | grep -A6 Package
+watch -n2 'sensors | grep -A6 Package'
+watch -n2 "cat /proc/cpuinfo | grep 'MHz'"
+nvidia-smi
+ps axch -o cmd:10,%mem --sort=-%mem | head
+ps axch -o cmd:10,%cpu --sort=-%cpu | head
+upower -i /org/freedesktop/UPower/devices/battery_BAT0
+upower -i /org/freedesktop/UPower/devices/battery_BAT0 | grep percentage | tr -s ' ' | cut -d ' ' -f3
+cat /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
+sudo tlp-stat -t # temperature
+
+
+# network
+curl https://icanhazip.com
+nmcli dev show | grep DNS
+nmcli d # show interfaces
+systemctl status stubby
+dig @127.0.0.1 google.com
+sudo vim /etc/stubby/stubby.yml
+sudo systemctl restart stubby
+
+cd /etc/NetworkManager/system-connections && ls -l
+nmcli dev wifi
+nmcli dev wifi connect <SSID> password <PASSWORD>
+nmcli con down id <CONNECTION> # disconnect
+nmcli dev status
+nmcli connection show
+nmcli con up <CONNECTION>
+
+
+# misc
+maim --select -k ~/downloads/image.png
+youtube-dl -x --audio-format mp3 <LINK>
+cat /dev/urandom | env LC_CTYPE=C tr -dc 'a-z0-9' | head -c 30
+tar -xvzf <FILE>.tar.gz
+tar -xvf <FILE>.tar.xz
+
+
+# bluetooth
+sudo rfkill unblock bluetooth
+sudo service bluetooth start
+
+
+# screen
+xrandr | grep " connected" | cut -f1 -d " "
+xrandr --output eDP-1 --brightness .5
+
+
+# https://github.com/pop-os/system76-power/blob/master/TESTING.md
+system76-power graphics
+system76-power graphics # nvdia integrated
+system76-power profile
+system76-power profile # battery balanced performance
+
