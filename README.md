@@ -41,4 +41,6 @@ cd provision
 #warp-cli connect
 #curl https://www.cloudflare.com/cdn-cgi/trace/
 #warp-cli set-mode warp+doh
+
+#pip3 install youtube-dl
 ```
