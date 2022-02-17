@@ -11,7 +11,7 @@ set autoread
 " tabs spaces
 autocmd BufRead *.yml,*.yml.*,*.yaml    setlocal shiftwidth=2 tabstop=2 expandtab
 autocmd BufRead *.js                    setlocal shiftwidth=2 tabstop=2 expandtab
-autocmd BufRead *.py,*.sh,*.txt         setlocal shiftwidth=4 tabstop=4 expandtab
+autocmd BufRead *.py,*.sh,*.txt,*.php   setlocal shiftwidth=4 tabstop=4 expandtab
 autocmd BufRead *.html                  setlocal shiftwidth=2 tabstop=2 expandtab
 autocmd BufRead *.rb                    setlocal shiftwidth=2 tabstop=2 expandtab
 set tabstop=4 shiftwidth=4 expandtab
