@@ -124,7 +124,7 @@ alias lxps='lxc profile show'
 alias lxil='lxc image ls'
 # tmux
 alias t='tmux'
-alias tm='tm'
+alias tm='tmux'
 alias ta='tmux attach'
 # cal
 alias jan='cal -m 01'
